@@ -29,7 +29,7 @@ class CheckinRentalRequest extends FormRequest
             'checkin_condition.new_damages.*.estimated_cost' => ['nullable', 'numeric', 'min:0'],
 
             'checkin_notes' => ['nullable', 'string', 'max:2000'],
-            'checkin_signature' => ['nullable', 'string', 'max:500'],
+            'checkin_signature' => ['nullable', 'string', 'max:500000'],
 
             // Charges shtesë manuale (nga admin)
             'fuel_charge' => ['nullable', 'numeric', 'min:0', 'max:10000'],

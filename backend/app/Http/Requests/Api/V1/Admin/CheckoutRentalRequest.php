@@ -25,7 +25,7 @@ class CheckoutRentalRequest extends FormRequest
             'checkout_condition.existing_damages.*' => ['string', 'max:255'],
 
             'checkout_notes' => ['nullable', 'string', 'max:2000'],
-            'checkout_signature' => ['nullable', 'string', 'max:500'], // path ose identifier
+            'checkout_signature' => ['nullable', 'string', 'max:500000'], // path ose identifier
         ];
     }
 }

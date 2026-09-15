@@ -18,6 +18,8 @@ import VehiclesPage from '@/pages/admin/VehiclesPage'
 import CustomersPage from '@/pages/admin/CustomersPage'
 import ReservationsPage from '@/pages/admin/ReservationsPage'
 import RentalsPage from '@/pages/admin/RentalsPage'
+import CheckoutPage from '@/pages/admin/CheckoutPage'
+import CheckinPage from '@/pages/admin/CheckinPage'
 
 export const router = createBrowserRouter([
   {
@@ -50,6 +52,8 @@ export const router = createBrowserRouter([
           { path: 'customers', element: <CustomersPage /> },
           { path: 'reservations', element: <ReservationsPage /> },
           { path: 'rentals', element: <RentalsPage /> },
+          { path: 'rentals/:id/checkout', element: <CheckoutPage /> },
+          { path: 'rentals/:id/checkin', element: <CheckinPage /> },
           { path: '*', element: <NotFoundPage /> },
         ],
       },
