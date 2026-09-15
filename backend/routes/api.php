@@ -13,6 +13,7 @@ use App\Http\Controllers\Api\V1\AvailabilityController;
 use App\Http\Controllers\Api\V1\LocationController;
 use App\Http\Controllers\Api\V1\PublicReservationController;
 use App\Http\Controllers\Api\V1\VehicleController;
+use App\Http\Controllers\Api\V1\Admin\ContractController as AdminContractController;
 use Illuminate\Support\Facades\Route;
 
 Route::prefix('v1')->group(function () {
@@ -75,5 +76,12 @@ Route::prefix('v1')->group(function () {
         Route::get('invoices/{invoice}/pdf', [AdminInvoiceController::class, 'pdf']);
         Route::post('invoices/{invoice}/regenerate', [AdminInvoiceController::class, 'regenerate']);
         Route::post('invoices/{invoice}/mark-paid', [AdminInvoiceController::class, 'markPaid']);
+
+        // Contracts
+Route::get('contracts', [AdminContractController::class, 'index']);
+Route::post('contracts', [AdminContractController::class, 'store']);
+Route::get('contracts/{contract}', [AdminContractController::class, 'show']);
+Route::get('contracts/{contract}/pdf', [AdminContractController::class, 'pdf']);
+Route::post('contracts/{contract}/regenerate', [AdminContractController::class, 'regenerate']);
     });
 });
