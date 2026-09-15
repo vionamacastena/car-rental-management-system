@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Api\V1\Admin\LocationController as AdminLocationController;
 use App\Http\Controllers\Api\V1\Admin\VehicleController as AdminVehicleController;
+use App\Http\Controllers\Api\V1\Admin\VehiclePhotoController as AdminVehiclePhotoController;
 use App\Http\Controllers\Api\V1\Auth\AuthController;
 use App\Http\Controllers\Api\V1\AvailabilityController;
 use App\Http\Controllers\Api\V1\LocationController;
@@ -34,5 +35,11 @@ Route::prefix('v1')->group(function () {
         Route::apiResource('locations', AdminLocationController::class);
         Route::apiResource('vehicles', AdminVehicleController::class);
         Route::patch('vehicles/{vehicle}/status', [AdminVehicleController::class, 'updateStatus']);
+
+        // Vehicle photos
+        Route::post('vehicles/{vehicle}/photos', [AdminVehiclePhotoController::class, 'store']);
+        Route::patch('vehicles/{vehicle}/photos/{photo}/primary', [AdminVehiclePhotoController::class, 'setPrimary']);
+        Route::patch('vehicles/{vehicle}/photos/reorder', [AdminVehiclePhotoController::class, 'reorder']);
+        Route::delete('vehicles/{vehicle}/photos/{photo}', [AdminVehiclePhotoController::class, 'destroy']);
     });
 });

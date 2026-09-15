@@ -3,6 +3,7 @@ import { X, AlertCircle } from 'lucide-react'
 import { AxiosError } from 'axios'
 import { Button } from '@/components/ui/Button'
 import { FeaturesInput } from '@/components/admin/FeaturesInput'
+import { PhotosManager } from '@/components/admin/PhotosManager'
 import { STATUS_OPTIONS } from '@/components/admin/VehicleStatusBadge'
 import {
   useCreateVehicle,
@@ -147,7 +148,7 @@ export function VehicleFormModal({ vehicle, onClose }: Props) {
             </div>
           )}
 
-          {/* Section: Bazë */}
+          {/* Bazë */}
           <Section title="Informacione bazë">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <Field label="Marka *">
@@ -186,7 +187,7 @@ export function VehicleFormModal({ vehicle, onClose }: Props) {
             </div>
           </Section>
 
-          {/* Section: Identifikimi */}
+          {/* Identifikimi */}
           <Section title="Identifikimi">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <Field label="Targa *">
@@ -209,7 +210,7 @@ export function VehicleFormModal({ vehicle, onClose }: Props) {
             </div>
           </Section>
 
-          {/* Section: Specifikime */}
+          {/* Specifikime */}
           <Section title="Specifikime teknike">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <Field label="Karburanti *">
@@ -254,7 +255,7 @@ export function VehicleFormModal({ vehicle, onClose }: Props) {
             </div>
           </Section>
 
-          {/* Section: Çmimi */}
+          {/* Çmimi */}
           <Section title="Çmimi & vlera">
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
               <Field label="Çmimi ditor (€) *">
@@ -290,7 +291,7 @@ export function VehicleFormModal({ vehicle, onClose }: Props) {
             </div>
           </Section>
 
-          {/* Section: Statusi & Lokacioni */}
+          {/* Statusi & Lokacioni */}
           <Section title="Statusi & lokacioni">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <Field label="Lokacioni aktual">
@@ -319,7 +320,7 @@ export function VehicleFormModal({ vehicle, onClose }: Props) {
             </div>
           </Section>
 
-          {/* Section: Përshkrimi */}
+          {/* Përshkrimi */}
           <Section title="Përshkrimi">
             <textarea
               value={form.description ?? ''}
@@ -330,10 +331,20 @@ export function VehicleFormModal({ vehicle, onClose }: Props) {
             />
           </Section>
 
-          {/* Section: Pajisje */}
+          {/* Pajisje */}
           <Section title="Pajisje / Features">
             <FeaturesInput value={features} onChange={setFeatures} />
           </Section>
+
+          {/* FOTOT — vetëm në edit mode */}
+          {isEdit && vehicle && (
+            <Section title="Fotot">
+              <PhotosManager
+                vehicleId={vehicle.id}
+                photos={vehicle.photos ?? []}
+              />
+            </Section>
+          )}
 
           {/* Actions */}
           <div className="sticky bottom-0 -mx-6 flex justify-end gap-3 border-t border-line bg-cream px-6 py-4 rounded-b-2xl">
