@@ -12,6 +12,7 @@ use App\Models\Rental;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
+use App\Http\Requests\Api\V1\Admin\SignContractRequest;
 
 class ContractController extends Controller
 {
@@ -108,4 +109,37 @@ class ContractController extends Controller
 
         return new ContractResource($contract->fresh()->load(['customer', 'vehicle']));
     }
+    /**
+ * Firma e klientit (e bërë nga admin panel pasi klienti firmos fizikisht ose në tablet).
+ */
+public function signCustomer(SignContractRequest $request, Contract $contract): ContractResource|JsonResponse
+{
+    return $this->signByParty($contract, 'customer', $request->validated('signature'), $request);
+}
+
+/**
+ * Firma e adminit.
+ */
+public function signAdmin(SignContractRequest $request, Contract $contract): ContractResource|JsonResponse
+{
+    return $this->signByParty($contract, 'admin', $request->validated('signature'), $request);
+}
+
+private function signByParty(Contract $contract, string $party, string $signature, Request $request): ContractResource|JsonResponse
+{
+    try {
+        $contract = $this->service->sign(
+            $contract,
+            $party,
+            $signature,
+            $request->ip(),
+        );
+    } catch (\RuntimeException $e) {
+        return response()->json(['message' => $e->getMessage()], 409);
+    }
+
+    return new ContractResource(
+        $contract->load(['customer', 'vehicle'])
+    );
+}
 }

@@ -133,3 +133,122 @@ it('filters contracts by status', function () {
 
     $response->assertOk()->assertJsonCount(1, 'data');
 });
+
+it('signs the contract as customer', function () {
+    $contract = Contract::factory()->create([
+        'rental_id' => $this->rental->id,
+        'status' => ContractStatus::DRAFT,
+    ]);
+
+    $response = $this->withHeaders($this->headers)
+        ->postJson("/api/v1/admin/contracts/{$contract->id}/sign-customer", [
+            'party' => 'customer',
+            'signature' => 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUg==',
+        ]);
+
+    $response->assertOk()
+        ->assertJsonPath('data.signatures.customer_signed', true)
+        ->assertJsonPath('data.signatures.admin_signed', false)
+        ->assertJsonPath('data.status.value', 'pending_signature');
+
+    expect($contract->fresh()->customer_signature)->not->toBeNull();
+    expect($contract->fresh()->customer_signed_at)->not->toBeNull();
+});
+
+it('signs the contract as admin and marks it fully signed when both present', function () {
+    $contract = Contract::factory()->create([
+        'rental_id' => $this->rental->id,
+        'status' => ContractStatus::PENDING_SIGNATURE,
+        'customer_signature' => 'data:image/png;base64,customer',
+        'customer_signed_at' => now()->subHour(),
+    ]);
+
+    $response = $this->withHeaders($this->headers)
+        ->postJson("/api/v1/admin/contracts/{$contract->id}/sign-admin", [
+            'party' => 'admin',
+            'signature' => 'data:image/png;base64,admin',
+        ]);
+
+    $response->assertOk()
+        ->assertJsonPath('data.signatures.fully_signed', true)
+        ->assertJsonPath('data.status.value', 'signed');
+
+    expect($contract->fresh()->admin_signature)->not->toBeNull();
+    expect($contract->fresh()->admin_signed_at)->not->toBeNull();
+});
+
+it('marks contract pending_signature when only admin signs', function () {
+    $contract = Contract::factory()->create([
+        'rental_id' => $this->rental->id,
+        'status' => ContractStatus::DRAFT,
+    ]);
+
+    $response = $this->withHeaders($this->headers)
+        ->postJson("/api/v1/admin/contracts/{$contract->id}/sign-admin", [
+            'party' => 'admin',
+            'signature' => 'data:image/png;base64,admin',
+        ]);
+
+    $response->assertOk()
+        ->assertJsonPath('data.status.value', 'pending_signature');
+});
+
+it('rejects signing customer twice', function () {
+    $contract = Contract::factory()->create([
+        'rental_id' => $this->rental->id,
+        'status' => ContractStatus::PENDING_SIGNATURE,
+        'customer_signature' => 'data:image/png;base64,first',
+        'customer_signed_at' => now(),
+    ]);
+
+    $response = $this->withHeaders($this->headers)
+        ->postJson("/api/v1/admin/contracts/{$contract->id}/sign-customer", [
+            'party' => 'customer',
+            'signature' => 'data:image/png;base64,second',
+        ]);
+
+    $response->assertStatus(409);
+});
+
+it('rejects signing a cancelled contract', function () {
+    $contract = Contract::factory()->create([
+        'rental_id' => $this->rental->id,
+        'status' => ContractStatus::CANCELLED,
+    ]);
+
+    $response = $this->withHeaders($this->headers)
+        ->postJson("/api/v1/admin/contracts/{$contract->id}/sign-admin", [
+            'party' => 'admin',
+            'signature' => 'data:image/png;base64,admin',
+        ]);
+
+    $response->assertStatus(409);
+});
+
+it('validates signature is required', function () {
+    $contract = Contract::factory()->create(['rental_id' => $this->rental->id]);
+
+    $response = $this->withHeaders($this->headers)
+        ->postJson("/api/v1/admin/contracts/{$contract->id}/sign-admin", [
+            'party' => 'admin',
+        ]);
+
+    $response->assertUnprocessable()
+        ->assertJsonValidationErrors(['signature']);
+});
+
+it('stores customer IP on signature', function () {
+    $contract = Contract::factory()->create([
+        'rental_id' => $this->rental->id,
+        'status' => ContractStatus::DRAFT,
+    ]);
+
+    $this->withHeaders($this->headers)
+        ->postJson("/api/v1/admin/contracts/{$contract->id}/sign-customer", [
+            'party' => 'customer',
+            'signature' => 'data:image/png;base64,x',
+        ])
+        ->assertOk();
+
+    expect($contract->fresh()->customer_signed_ip)->not->toBeNull();
+});

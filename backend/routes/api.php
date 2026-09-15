@@ -77,11 +77,13 @@ Route::prefix('v1')->group(function () {
         Route::post('invoices/{invoice}/regenerate', [AdminInvoiceController::class, 'regenerate']);
         Route::post('invoices/{invoice}/mark-paid', [AdminInvoiceController::class, 'markPaid']);
 
-        // Contracts
+     // Contracts
 Route::get('contracts', [AdminContractController::class, 'index']);
 Route::post('contracts', [AdminContractController::class, 'store']);
 Route::get('contracts/{contract}', [AdminContractController::class, 'show']);
 Route::get('contracts/{contract}/pdf', [AdminContractController::class, 'pdf']);
 Route::post('contracts/{contract}/regenerate', [AdminContractController::class, 'regenerate']);
+Route::post('contracts/{contract}/sign-customer', [AdminContractController::class, 'signCustomer']);
+Route::post('contracts/{contract}/sign-admin', [AdminContractController::class, 'signAdmin']);
     });
 });

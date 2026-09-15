@@ -40,6 +40,59 @@ class ContractService
             return $contract->fresh();
         });
     }
+    /**
+ * Regjistron një firmë për kontratën.
+ * Nëse të dyja palët kanë firmuar, statusi kalon në SIGNED.
+ */
+public function sign(
+    Contract $contract,
+    string $party,
+    string $signature,
+    ?string $ip = null,
+): Contract {
+    return DB::transaction(function () use ($contract, $party, $signature, $ip) {
+        if ($contract->status === ContractStatus::CANCELLED) {
+            throw new RuntimeException('Kontrata është e anuluar.');
+        }
+
+        if ($party === 'customer' && $contract->customer_signature) {
+            throw new RuntimeException('Klienti e ka firmosur tashmë kontratën.');
+        }
+
+        if ($party === 'admin' && $contract->admin_signature) {
+            throw new RuntimeException('Administratori e ka firmosur tashmë kontratën.');
+        }
+
+        $update = [];
+
+        if ($party === 'customer') {
+            $update['customer_signature'] = $signature;
+            $update['customer_signed_at'] = now();
+            $update['customer_signed_ip'] = $ip;
+        } else {
+            $update['admin_signature'] = $signature;
+            $update['admin_signed_at'] = now();
+            $update['admin_signed_ip'] = $ip;
+        }
+
+        // A ka të dyja firmat pas këtij update?
+        $hasCustomer = $contract->customer_signature || $party === 'customer';
+        $hasAdmin = $contract->admin_signature || $party === 'admin';
+
+        if ($hasCustomer && $hasAdmin) {
+            $update['status'] = ContractStatus::SIGNED;
+        } elseif ($contract->status === ContractStatus::DRAFT) {
+            $update['status'] = ContractStatus::PENDING_SIGNATURE;
+        }
+
+        $contract->update($update);
+
+        // Rigjenero PDF me firmat e reja
+        $this->regeneratePdf($contract);
+
+        return $contract->fresh();
+    });
+}
 
     /**
      * Ndërton termat e kontratës bazuar në rental.
