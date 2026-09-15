@@ -17,6 +17,7 @@ use App\Http\Controllers\Api\V1\Admin\ContractController as AdminContractControl
 use App\Http\Controllers\Api\V1\Admin\DocumentController as AdminDocumentController;
 use App\Http\Controllers\Api\V1\Admin\MaintenanceController as AdminMaintenanceController;
 use App\Http\Controllers\Api\V1\Admin\NotificationController as AdminNotificationController;
+use App\Http\Controllers\Api\V1\Admin\ReportController as AdminReportController;
 use Illuminate\Support\Facades\Route;
 
 Route::prefix('v1')->group(function () {
@@ -110,6 +111,13 @@ Route::get('notifications/unread-count', [AdminNotificationController::class, 'u
 Route::post('notifications/{id}/read', [AdminNotificationController::class, 'markAsRead']);
 Route::post('notifications/mark-all-read', [AdminNotificationController::class, 'markAllAsRead']);
 Route::delete('notifications/{id}', [AdminNotificationController::class, 'destroy']);
+
+
+// Reports
+Route::get('reports/dashboard', [AdminReportController::class, 'dashboard']);
+Route::get('reports/revenue', [AdminReportController::class, 'revenue']);
+Route::get('reports/vehicles', [AdminReportController::class, 'vehicles']);
+Route::get('reports/locations', [AdminReportController::class, 'locations']);
 
     });
 });
