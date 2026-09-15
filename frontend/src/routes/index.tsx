@@ -22,6 +22,8 @@ import CheckoutPage from '@/pages/admin/CheckoutPage'
 import CheckinPage from '@/pages/admin/CheckinPage'
 import PaymentsPage from '@/pages/admin/PaymentsPage'
 import InvoicesPage from '@/pages/admin/InvoicesPage'
+import ContractsPage from '@/pages/admin/ContractsPage'
+import ContractDetailPage from '@/pages/admin/ContractDetailPage'
 
 export const router = createBrowserRouter([
   {
@@ -55,6 +57,8 @@ export const router = createBrowserRouter([
           { path: 'rentals/:id/checkin', element: <CheckinPage /> },
           { path: 'payments', element: <PaymentsPage /> },
           { path: 'invoices', element: <InvoicesPage /> },
+          { path: 'contracts', element: <ContractsPage /> },
+          { path: 'contracts/:id', element: <ContractDetailPage /> },
           { path: '*', element: <NotFoundPage /> },
         ],
       },

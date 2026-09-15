@@ -1,9 +1,10 @@
 import { NavLink } from 'react-router-dom'
 import {
   LayoutDashboard, Car, CalendarCheck, Users, Wallet,
-  Wrench, MapPin, FileText, BarChart3, Settings, ShieldCheck,
+  Wrench, MapPin, FileText, FileSignature, BarChart3, Settings, ShieldCheck,
 } from 'lucide-react'
 import { cn } from '@/lib/cn'
+
 
 interface NavItem {
   to: string
@@ -39,13 +40,14 @@ const sections: NavSection[] = [
       { to: '/admin/locations', label: 'Lokacionet', icon: MapPin },
     ],
   },
-  {
-    title: 'Financa',
-    items: [
-      { to: '/admin/payments', label: 'Pagesat', icon: Wallet },
-      { to: '/admin/invoices', label: 'Faturat', icon: FileText },
-    ],
-  },
+{
+  title: 'Financa',
+  items: [
+    { to: '/admin/payments', label: 'Pagesat', icon: Wallet },
+    { to: '/admin/invoices', label: 'Faturat', icon: FileText },
+    { to: '/admin/contracts', label: 'Kontratat', icon: FileSignature },
+  ],
+},
   {
     title: 'Sistemi',
     items: [
