@@ -43,6 +43,7 @@ const sections: NavSection[] = [
     title: 'Financa',
     items: [
       { to: '/admin/payments', label: 'Pagesat', icon: Wallet },
+      { to: '/admin/invoices', label: 'Faturat', icon: FileText },
     ],
   },
   {
@@ -99,7 +100,7 @@ export function AdminSidebar() {
       </nav>
 
       <div className="border-t border-ink-700/40 p-4 text-[10px] text-cream/40">
-        v0.1.0 · Phase 2
+        v0.1.0 · Phase 5
       </div>
     </aside>
   )

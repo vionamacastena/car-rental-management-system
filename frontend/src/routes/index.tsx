@@ -20,6 +20,8 @@ import ReservationsPage from '@/pages/admin/ReservationsPage'
 import RentalsPage from '@/pages/admin/RentalsPage'
 import CheckoutPage from '@/pages/admin/CheckoutPage'
 import CheckinPage from '@/pages/admin/CheckinPage'
+import PaymentsPage from '@/pages/admin/PaymentsPage'
+import InvoicesPage from '@/pages/admin/InvoicesPage'
 
 export const router = createBrowserRouter([
   {
@@ -34,10 +36,7 @@ export const router = createBrowserRouter([
       { path: 'reservation/lookup', element: <ReservationLookupPage /> },
     ],
   },
-  {
-    path: '/admin/login',
-    element: <LoginPage />,
-  },
+  { path: '/admin/login', element: <LoginPage /> },
   {
     path: '/admin',
     element: <ProtectedRoute />,
@@ -54,6 +53,8 @@ export const router = createBrowserRouter([
           { path: 'rentals', element: <RentalsPage /> },
           { path: 'rentals/:id/checkout', element: <CheckoutPage /> },
           { path: 'rentals/:id/checkin', element: <CheckinPage /> },
+          { path: 'payments', element: <PaymentsPage /> },
+          { path: 'invoices', element: <InvoicesPage /> },
           { path: '*', element: <NotFoundPage /> },
         ],
       },
