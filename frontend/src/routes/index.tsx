@@ -6,6 +6,9 @@ import { ProtectedRoute } from '@/features/auth/ProtectedRoute'
 import HomePage from '@/pages/HomePage'
 import FleetPage from '@/pages/FleetPage'
 import VehicleDetailsPage from '@/pages/VehicleDetailsPage'
+import BookingPage from '@/pages/BookingPage'
+import ConfirmationPage from '@/pages/ConfirmationPage'
+import ReservationLookupPage from '@/pages/ReservationLookupPage'
 import NotFoundPage from '@/pages/NotFoundPage'
 
 import LoginPage from '@/pages/admin/LoginPage'
@@ -21,6 +24,9 @@ export const router = createBrowserRouter([
       { index: true, element: <HomePage /> },
       { path: 'fleet', element: <FleetPage /> },
       { path: 'vehicles/:id', element: <VehicleDetailsPage /> },
+      { path: 'booking/:vehicleId', element: <BookingPage /> },
+      { path: 'confirmation/:code', element: <ConfirmationPage /> },
+      { path: 'reservation/lookup', element: <ReservationLookupPage /> },
     ],
   },
   {

@@ -2,7 +2,6 @@ import { useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { ArrowLeft, Users, Fuel, Gauge, Calendar, MapPin, Check } from 'lucide-react'
 import { useVehicle } from '@/hooks/useVehicle'
-import { Button } from '@/components/ui/Button'
 
 export default function VehicleDetailsPage() {
   const { id } = useParams<{ id: string }>()
@@ -40,7 +39,6 @@ export default function VehicleDetailsPage() {
 
   return (
     <div className="mx-auto max-w-shell px-6 lg:px-10 py-10">
-      {/* Back */}
       <Link
         to="/fleet"
         className="inline-flex items-center gap-2 text-sm font-medium text-muted hover:text-ink mb-8"
@@ -119,18 +117,14 @@ export default function VehicleDetailsPage() {
               </div>
             </div>
 
-            <Button
-              type="button"
-              variant="primary"
-              size="lg"
-              className="mt-5 w-full font-semibold"
-              disabled
-              title="Rezervimi vjen në Fazën 4"
+            <Link
+              to={`/booking/${vehicle.id}`}
+              className="mt-5 flex h-12 w-full items-center justify-center rounded-lg bg-gold text-base font-semibold text-ink transition-colors hover:bg-gold/90"
             >
               Rezervo tani
-            </Button>
+            </Link>
             <p className="mt-3 text-center text-xs text-muted">
-              Booking flow vjen së shpejti — pa login, në 5 minuta.
+              Pa login · konfirmim në sekonda
             </p>
           </div>
 
