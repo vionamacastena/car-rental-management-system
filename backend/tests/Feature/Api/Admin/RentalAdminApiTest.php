@@ -1,0 +1,157 @@
+<?php
+
+use App\Enums\RentalStatus;
+use App\Enums\ReservationStatus;
+use App\Enums\VehicleStatus;
+use App\Models\Rental;
+use App\Models\Reservation;
+use App\Models\User;
+use App\Models\Vehicle;
+use Illuminate\Support\Facades\Hash;
+
+beforeEach(function () {
+    $this->admin = User::factory()->create([
+        'email' => 'admin@test.com',
+        'password' => Hash::make('password123'),
+        'is_active' => true,
+    ]);
+    $this->token = $this->admin->createToken('test')->plainTextToken;
+    $this->headers = ['Authorization' => "Bearer {$this->token}"];
+});
+
+it('requires authentication', function () {
+    $this->getJson('/api/v1/admin/rentals')->assertUnauthorized();
+});
+
+it('lists rentals', function () {
+    Rental::factory()->count(3)->create();
+
+    $response = $this->withHeaders($this->headers)
+        ->getJson('/api/v1/admin/rentals');
+
+    $response->assertOk()->assertJsonCount(3, 'data');
+});
+
+it('filters only open rentals', function () {
+    Rental::factory()->create(['status' => RentalStatus::PENDING_CHECKOUT]);
+    Rental::factory()->create(['status' => RentalStatus::ACTIVE]);
+    Rental::factory()->create(['status' => RentalStatus::COMPLETED]);
+
+    $response = $this->withHeaders($this->headers)
+        ->getJson('/api/v1/admin/rentals?open_only=1');
+
+    $response->assertOk()->assertJsonCount(2, 'data');
+});
+
+it('starts a rental from a reserved reservation', function () {
+    $reservation = Reservation::factory()->create([
+        'status' => ReservationStatus::RESERVED,
+        'subtotal' => 250,
+        'total' => 250,
+        'deposit_amount' => 200,
+    ]);
+
+    $response = $this->withHeaders($this->headers)
+        ->postJson('/api/v1/admin/rentals', [
+            'reservation_id' => $reservation->id,
+        ]);
+
+    $response->assertCreated()
+        ->assertJsonPath('data.status.value', 'pending_checkout');
+
+    $rental = Rental::first();
+    expect($rental->reservation_id)->toBe($reservation->id);
+    expect((float) $rental->total_amount)->toBe(250.00);
+});
+
+it('rejects starting rental from non-reserved reservation', function () {
+    $reservation = Reservation::factory()->create([
+        'status' => ReservationStatus::CANCELLED,
+        'cancelled_at' => now(),
+    ]);
+
+    $response = $this->withHeaders($this->headers)
+        ->postJson('/api/v1/admin/rentals', [
+            'reservation_id' => $reservation->id,
+        ]);
+
+    $response->assertStatus(409);
+});
+
+it('performs check-out and updates related entities', function () {
+    $vehicle = Vehicle::factory()->create([
+        'status' => VehicleStatus::AVAILABLE->value,
+        'mileage' => 10000,
+    ]);
+    $reservation = Reservation::factory()->create([
+        'status' => ReservationStatus::RESERVED,
+        'vehicle_id' => $vehicle->id,
+    ]);
+    $rental = Rental::factory()->create([
+        'reservation_id' => $reservation->id,
+        'vehicle_id' => $vehicle->id,
+        'status' => RentalStatus::PENDING_CHECKOUT,
+    ]);
+
+    $response = $this->withHeaders($this->headers)
+        ->postJson("/api/v1/admin/rentals/{$rental->id}/checkout", [
+            'pickup_mileage' => 10500,
+            'pickup_fuel_level' => 100,
+            'checkout_condition' => [
+                'exterior' => 'good',
+                'interior' => 'clean',
+                'existing_damages' => [],
+            ],
+            'checkout_notes' => 'Klient mori makinën në orar',
+        ]);
+
+    $response->assertOk()
+        ->assertJsonPath('data.status.value', 'active')
+        ->assertJsonPath('data.mileage.pickup', 10500)
+        ->assertJsonPath('data.fuel.pickup_level', 100);
+
+    expect($rental->fresh()->status)->toBe(RentalStatus::ACTIVE);
+    expect($vehicle->fresh()->status)->toBe(VehicleStatus::RENTED);
+    expect($vehicle->fresh()->mileage)->toBe(10500);
+    expect($reservation->fresh()->status)->toBe(ReservationStatus::PICKED_UP);
+});
+
+it('refuses check-out on non-pending rental', function () {
+    $rental = Rental::factory()->create(['status' => RentalStatus::ACTIVE]);
+
+    $response = $this->withHeaders($this->headers)
+        ->postJson("/api/v1/admin/rentals/{$rental->id}/checkout", [
+            'pickup_mileage' => 10000,
+            'pickup_fuel_level' => 100,
+        ]);
+
+    $response->assertStatus(409);
+});
+
+it('validates check-out fields', function () {
+    $rental = Rental::factory()->create(['status' => RentalStatus::PENDING_CHECKOUT]);
+
+    $response = $this->withHeaders($this->headers)
+        ->postJson("/api/v1/admin/rentals/{$rental->id}/checkout", []);
+
+    $response->assertUnprocessable()
+        ->assertJsonValidationErrors(['pickup_mileage', 'pickup_fuel_level']);
+});
+
+it('cancels a pending rental', function () {
+    $rental = Rental::factory()->create(['status' => RentalStatus::PENDING_CHECKOUT]);
+
+    $response = $this->withHeaders($this->headers)
+        ->postJson("/api/v1/admin/rentals/{$rental->id}/cancel");
+
+    $response->assertOk()->assertJsonPath('data.status.value', 'cancelled');
+});
+
+it('refuses to cancel an active rental', function () {
+    $rental = Rental::factory()->create(['status' => RentalStatus::ACTIVE]);
+
+    $response = $this->withHeaders($this->headers)
+        ->postJson("/api/v1/admin/rentals/{$rental->id}/cancel");
+
+    $response->assertStatus(409);
+});
