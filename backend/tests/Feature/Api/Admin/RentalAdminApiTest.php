@@ -260,3 +260,82 @@ it('validates check-in fields', function () {
     $response->assertUnprocessable()
         ->assertJsonValidationErrors(['return_mileage', 'return_fuel_level']);
 });
+
+it('creates deposit settlement payments on check-in', function () {
+    $vehicle = Vehicle::factory()->create(['status' => VehicleStatus::RENTED->value, 'mileage' => 10000]);
+    $rental = Rental::factory()->create([
+        'vehicle_id' => $vehicle->id,
+        'status' => RentalStatus::ACTIVE,
+        'pickup_mileage' => 10000,
+        'deposit_amount' => 300,
+        'base_amount' => 250,
+        'total_amount' => 250,
+    ]);
+
+    $this->withHeaders($this->headers)
+        ->postJson("/api/v1/admin/rentals/{$rental->id}/checkin", [
+            'return_mileage' => 10500,
+            'return_fuel_level' => 100,
+            'damage_charge' => 120,
+        ])
+        ->assertOk();
+
+    // Duhet: 1 EXTRA_CHARGE (120) + 1 DEPOSIT_REFUND (180)
+    $payments = \App\Models\Payment::where('payable_id', $rental->id)
+        ->where('payable_type', \App\Models\Rental::class)
+        ->get();
+
+    expect($payments)->toHaveCount(2);
+
+    $deduction = $payments->firstWhere(fn ($p) => $p->type->value === 'extra_charge');
+    $refund = $payments->firstWhere(fn ($p) => $p->type->value === 'deposit_refund');
+
+    expect((float) $deduction->amount)->toBe(120.0);
+    expect((float) $refund->amount)->toBe(180.0);
+});
+
+it('does not create payments when deposit is zero', function () {
+    $vehicle = Vehicle::factory()->create(['status' => VehicleStatus::RENTED->value, 'mileage' => 10000]);
+    $rental = Rental::factory()->create([
+        'vehicle_id' => $vehicle->id,
+        'status' => RentalStatus::ACTIVE,
+        'pickup_mileage' => 10000,
+        'deposit_amount' => 0,
+        'base_amount' => 250,
+        'total_amount' => 250,
+    ]);
+
+    $this->withHeaders($this->headers)
+        ->postJson("/api/v1/admin/rentals/{$rental->id}/checkin", [
+            'return_mileage' => 10500,
+            'return_fuel_level' => 100,
+        ])
+        ->assertOk();
+
+    $count = \App\Models\Payment::where('payable_id', $rental->id)->count();
+    expect($count)->toBe(0);
+});
+
+it('allows disabling auto payment creation', function () {
+    $vehicle = Vehicle::factory()->create(['status' => VehicleStatus::RENTED->value, 'mileage' => 10000]);
+    $rental = Rental::factory()->create([
+        'vehicle_id' => $vehicle->id,
+        'status' => RentalStatus::ACTIVE,
+        'pickup_mileage' => 10000,
+        'deposit_amount' => 300,
+        'base_amount' => 250,
+        'total_amount' => 250,
+    ]);
+
+    $this->withHeaders($this->headers)
+        ->postJson("/api/v1/admin/rentals/{$rental->id}/checkin", [
+            'return_mileage' => 10500,
+            'return_fuel_level' => 100,
+            'damage_charge' => 120,
+            'create_payments' => false,
+        ])
+        ->assertOk();
+
+    $count = \App\Models\Payment::where('payable_id', $rental->id)->count();
+    expect($count)->toBe(0);
+});

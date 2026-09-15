@@ -9,12 +9,14 @@ use App\Models\Rental;
 use App\Models\Reservation;
 use Illuminate\Support\Facades\DB;
 use RuntimeException;
+use App\Domain\Payments\PaymentService;
 
 class RentalService
 {
     public function __construct(
-        private readonly ChargeCalculator $charges,
-    ) {}
+    private readonly ChargeCalculator $charges,
+    private readonly \App\Domain\Payments\PaymentService $payments,
+) {}
 
     public function createFromReservation(Reservation $reservation): Rental
     {
@@ -151,6 +153,17 @@ class RentalService
             if ($rental->reservation) {
                 $rental->reservation->update(['status' => ReservationStatus::COMPLETED]);
             }
+            // 6. Auto-krijo payment records për deposit settlement
+$shouldCreatePayments = $data['create_payments'] ?? true;
+if ($shouldCreatePayments && $rental->deposit_amount > 0) {
+    $this->payments->settleDeposit(
+        $rental,
+        (float) $settlement['deposit_deduction'],
+        (float) $settlement['deposit_refund'],
+        $data['refund_method'] ?? null,
+        auth()->id(),
+    );
+}
 
             return $rental->fresh(['customer', 'vehicle', 'reservation', 'pickupLocation', 'returnLocation']);
         });

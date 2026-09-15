@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Api\V1\Admin\CustomerController as AdminCustomerController;
 use App\Http\Controllers\Api\V1\Admin\LocationController as AdminLocationController;
+use App\Http\Controllers\Api\V1\Admin\PaymentController as AdminPaymentController;
 use App\Http\Controllers\Api\V1\Admin\RentalController as AdminRentalController;
 use App\Http\Controllers\Api\V1\Admin\ReservationController as AdminReservationController;
 use App\Http\Controllers\Api\V1\Admin\VehicleController as AdminVehicleController;
@@ -62,5 +63,12 @@ Route::prefix('v1')->group(function () {
         Route::post('rentals/{rental}/checkout', [AdminRentalController::class, 'checkout']);
         Route::post('rentals/{rental}/checkin', [AdminRentalController::class, 'checkin']);
         Route::post('rentals/{rental}/cancel', [AdminRentalController::class, 'cancel']);
+
+        // Payments
+        Route::get('payments', [AdminPaymentController::class, 'index']);
+        Route::post('payments', [AdminPaymentController::class, 'store']);
+        Route::get('payments/summary', [AdminPaymentController::class, 'summary']);
+        Route::get('payments/{payment}', [AdminPaymentController::class, 'show']);
+        Route::post('payments/{payment}/refund', [AdminPaymentController::class, 'refund']);
     });
 });

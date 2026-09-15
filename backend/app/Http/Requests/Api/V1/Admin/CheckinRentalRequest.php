@@ -41,6 +41,8 @@ class CheckinRentalRequest extends FormRequest
             // Manual override për deduction/refund (nëse admin do override)
             'deposit_deduction' => ['nullable', 'numeric', 'min:0'],
             'deposit_refund' => ['nullable', 'numeric', 'min:0'],
+            'refund_method' => ['nullable', \Illuminate\Validation\Rule::enum(\App\Enums\PaymentMethod::class)],
+'create_payments' => ['nullable', 'boolean'],
         ];
     }
 }
