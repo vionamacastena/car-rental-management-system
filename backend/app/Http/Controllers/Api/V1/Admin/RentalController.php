@@ -3,8 +3,8 @@
 namespace App\Http\Controllers\Api\V1\Admin;
 
 use App\Domain\Rentals\RentalService;
-use App\Enums\RentalStatus;
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Api\V1\Admin\CheckinRentalRequest;
 use App\Http\Requests\Api\V1\Admin\CheckoutRentalRequest;
 use App\Http\Requests\Api\V1\Admin\StartRentalRequest;
 use App\Http\Resources\RentalCollection;
@@ -65,9 +65,6 @@ class RentalController extends Controller
         return new RentalCollection($query->paginate($perPage));
     }
 
-    /**
-     * Krijon rental nga një rezervim (start rental).
-     */
     public function store(StartRentalRequest $request): JsonResponse
     {
         $reservation = Reservation::with(['customer', 'vehicle', 'pickupLocation', 'returnLocation'])
@@ -93,9 +90,6 @@ class RentalController extends Controller
         return new RentalResource($rental);
     }
 
-    /**
-     * Regjistron check-out (dorëzimin).
-     */
     public function checkout(CheckoutRentalRequest $request, Rental $rental): RentalResource|JsonResponse
     {
         try {
@@ -107,9 +101,17 @@ class RentalController extends Controller
         return new RentalResource($rental);
     }
 
-    /**
-     * Anulon një rental PENDING_CHECKOUT.
-     */
+    public function checkin(CheckinRentalRequest $request, Rental $rental): RentalResource|JsonResponse
+    {
+        try {
+            $rental = $this->service->checkin($rental, $request->validated());
+        } catch (RuntimeException $e) {
+            return response()->json(['message' => $e->getMessage()], 409);
+        }
+
+        return new RentalResource($rental);
+    }
+
     public function cancel(Rental $rental): RentalResource|JsonResponse
     {
         try {

@@ -60,6 +60,7 @@ Route::prefix('v1')->group(function () {
         Route::post('rentals', [AdminRentalController::class, 'store']);
         Route::get('rentals/{rental}', [AdminRentalController::class, 'show']);
         Route::post('rentals/{rental}/checkout', [AdminRentalController::class, 'checkout']);
+        Route::post('rentals/{rental}/checkin', [AdminRentalController::class, 'checkin']);
         Route::post('rentals/{rental}/cancel', [AdminRentalController::class, 'cancel']);
     });
 });

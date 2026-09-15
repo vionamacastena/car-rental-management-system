@@ -12,9 +12,10 @@ use RuntimeException;
 
 class RentalService
 {
-    /**
-     * Konverton një rezervim në rental (PENDING_CHECKOUT).
-     */
+    public function __construct(
+        private readonly ChargeCalculator $charges,
+    ) {}
+
     public function createFromReservation(Reservation $reservation): Rental
     {
         return DB::transaction(function () use ($reservation) {
@@ -50,16 +51,9 @@ class RentalService
         });
     }
 
-    /**
-     * Regjistron check-out (dorëzimin e automjetit).
-     * - Rental → ACTIVE
-     * - Vehicle → RENTED (mileage përditësohet)
-     * - Reservation → PICKED_UP
-     */
     public function checkout(Rental $rental, array $data): Rental
     {
         return DB::transaction(function () use ($rental, $data) {
-            // Lock vehicle për të shmangur race me rezervime të tjera
             $vehicle = $rental->vehicle()->lockForUpdate()->first();
 
             if ($rental->status !== RentalStatus::PENDING_CHECKOUT) {
@@ -68,7 +62,6 @@ class RentalService
                 );
             }
 
-            // Update rental
             $rental->update([
                 'status' => RentalStatus::ACTIVE,
                 'actual_pickup_at' => now(),
@@ -80,17 +73,13 @@ class RentalService
                 'checkout_signature' => $data['checkout_signature'] ?? null,
             ]);
 
-            // Vehicle → RENTED, update mileage
             $vehicle->update([
                 'status' => VehicleStatus::RENTED,
                 'mileage' => max((int) $vehicle->mileage, (int) $data['pickup_mileage']),
             ]);
 
-            // Reservation → PICKED_UP
             if ($rental->reservation) {
-                $rental->reservation->update([
-                    'status' => ReservationStatus::PICKED_UP,
-                ]);
+                $rental->reservation->update(['status' => ReservationStatus::PICKED_UP]);
             }
 
             return $rental->fresh(['customer', 'vehicle', 'reservation', 'pickupLocation', 'returnLocation']);
@@ -98,8 +87,75 @@ class RentalService
     }
 
     /**
-     * Anulon një rental vetëm nëse është ende PENDING_CHECKOUT.
+     * Regjistron check-in (kthimin e automjetit).
+     * - Rental → COMPLETED
+     * - Vehicle → CLEANING (pa dëm) ose DAMAGED (me dëm)
+     * - Reservation → COMPLETED
+     * - Kalkulohen charges + deposit settlement
      */
+    public function checkin(Rental $rental, array $data): Rental
+    {
+        return DB::transaction(function () use ($rental, $data) {
+            $vehicle = $rental->vehicle()->lockForUpdate()->first();
+
+            if (! in_array($rental->status, [RentalStatus::ACTIVE, RentalStatus::PENDING_CHECKIN], true)) {
+                throw new RuntimeException(
+                    "Check-in vetëm për rentals active. Statusi: {$rental->status->label()}."
+                );
+            }
+
+            // 1. Kalkulo charges
+            $charges = $this->charges->calculateAdditionalCharges($rental, $data);
+            $settlement = $this->charges->calculateDepositSettlement($rental, $charges);
+
+            // Nëse admin ka dhënë override manual, përdori ato
+            if (isset($data['deposit_deduction'])) {
+                $settlement['deposit_deduction'] = (float) $data['deposit_deduction'];
+            }
+            if (isset($data['deposit_refund'])) {
+                $settlement['deposit_refund'] = (float) $data['deposit_refund'];
+            }
+
+            // 2. A ka dëm të re?
+            $newDamages = $data['checkin_condition']['new_damages'] ?? [];
+            $hasNewDamage = ! empty($newDamages) || ($charges['damage_amount'] > 0);
+
+            // 3. Update rental
+            $rental->update([
+                'status' => RentalStatus::COMPLETED,
+                'actual_return_at' => now(),
+                'checked_in_at' => now(),
+                'return_mileage' => $data['return_mileage'],
+                'return_fuel_level' => $data['return_fuel_level'],
+                'mileage_used' => $charges['mileage_used'],
+                'checkin_condition' => $data['checkin_condition'] ?? null,
+                'checkin_notes' => $data['checkin_notes'] ?? null,
+                'checkin_signature' => $data['checkin_signature'] ?? null,
+                'fuel_amount' => $charges['fuel_amount'],
+                'damage_amount' => $charges['damage_amount'],
+                'extra_mileage_amount' => $charges['extra_mileage_amount'],
+                'late_return_amount' => $charges['late_return_amount'],
+                'other_charges_amount' => $charges['other_charges_amount'],
+                'total_amount' => $charges['total_amount'],
+                'deposit_deduction' => $settlement['deposit_deduction'],
+                'deposit_refund' => $settlement['deposit_refund'],
+            ]);
+
+            // 4. Update vehicle
+            $vehicle->update([
+                'status' => $hasNewDamage ? VehicleStatus::DAMAGED : VehicleStatus::CLEANING,
+                'mileage' => max((int) $vehicle->mileage, (int) $data['return_mileage']),
+            ]);
+
+            // 5. Update reservation
+            if ($rental->reservation) {
+                $rental->reservation->update(['status' => ReservationStatus::COMPLETED]);
+            }
+
+            return $rental->fresh(['customer', 'vehicle', 'reservation', 'pickupLocation', 'returnLocation']);
+        });
+    }
+
     public function cancel(Rental $rental): Rental
     {
         return DB::transaction(function () use ($rental) {

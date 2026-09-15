@@ -155,3 +155,108 @@ it('refuses to cancel an active rental', function () {
 
     $response->assertStatus(409);
 });
+
+it('performs check-in and completes the rental', function () {
+    $vehicle = Vehicle::factory()->create(['status' => VehicleStatus::RENTED->value, 'mileage' => 10000]);
+    $rental = Rental::factory()->create([
+        'vehicle_id' => $vehicle->id,
+        'status' => RentalStatus::ACTIVE,
+        'pickup_mileage' => 10000,
+        'deposit_amount' => 300,
+        'base_amount' => 250,
+        'total_amount' => 250,
+    ]);
+
+    $response = $this->withHeaders($this->headers)
+        ->postJson("/api/v1/admin/rentals/{$rental->id}/checkin", [
+            'return_mileage' => 10650,
+            'return_fuel_level' => 75,
+            'checkin_condition' => [
+                'exterior' => 'good',
+                'interior' => 'clean',
+                'new_damages' => [],
+            ],
+            'checkin_notes' => 'Kthyer në orar',
+        ]);
+
+    $response->assertOk()
+        ->assertJsonPath('data.status.value', 'completed')
+        ->assertJsonPath('data.mileage.used', 650);
+
+    expect($rental->fresh()->status)->toBe(RentalStatus::COMPLETED);
+    expect($vehicle->fresh()->status)->toBe(VehicleStatus::CLEANING);
+});
+
+it('marks vehicle as damaged when new damage is reported', function () {
+    $vehicle = Vehicle::factory()->create(['status' => VehicleStatus::RENTED->value, 'mileage' => 10000]);
+    $rental = Rental::factory()->create([
+        'vehicle_id' => $vehicle->id,
+        'status' => RentalStatus::ACTIVE,
+        'pickup_mileage' => 10000,
+        'deposit_amount' => 300,
+        'base_amount' => 250,
+        'total_amount' => 250,
+    ]);
+
+    $response = $this->withHeaders($this->headers)
+        ->postJson("/api/v1/admin/rentals/{$rental->id}/checkin", [
+            'return_mileage' => 10650,
+            'return_fuel_level' => 100,
+            'checkin_condition' => [
+                'exterior' => 'damaged',
+                'new_damages' => [
+                    ['area' => 'front_bumper', 'type' => 'scratch', 'severity' => 'minor'],
+                ],
+            ],
+            'damage_charge' => 150,
+        ]);
+
+    $response->assertOk();
+    expect($vehicle->fresh()->status)->toBe(VehicleStatus::DAMAGED);
+    expect((float) $rental->fresh()->damage_amount)->toBe(150.0);
+});
+
+it('calculates deposit deduction and refund correctly', function () {
+    $rental = Rental::factory()->create([
+        'status' => RentalStatus::ACTIVE,
+        'pickup_mileage' => 10000,
+        'deposit_amount' => 300,
+        'base_amount' => 250,
+        'total_amount' => 250,
+    ]);
+
+    $this->withHeaders($this->headers)
+        ->postJson("/api/v1/admin/rentals/{$rental->id}/checkin", [
+            'return_mileage' => 10500,
+            'return_fuel_level' => 100,
+            'damage_charge' => 120,
+        ])
+        ->assertOk();
+
+    $fresh = $rental->fresh();
+    expect((float) $fresh->deposit_deduction)->toBe(120.0);
+    expect((float) $fresh->deposit_refund)->toBe(180.0);
+    expect((float) $fresh->total_amount)->toBe(370.0); // 250 + 120
+});
+
+it('refuses check-in on non-active rental', function () {
+    $rental = Rental::factory()->create(['status' => RentalStatus::PENDING_CHECKOUT]);
+
+    $response = $this->withHeaders($this->headers)
+        ->postJson("/api/v1/admin/rentals/{$rental->id}/checkin", [
+            'return_mileage' => 10500,
+            'return_fuel_level' => 100,
+        ]);
+
+    $response->assertStatus(409);
+});
+
+it('validates check-in fields', function () {
+    $rental = Rental::factory()->create(['status' => RentalStatus::ACTIVE]);
+
+    $response = $this->withHeaders($this->headers)
+        ->postJson("/api/v1/admin/rentals/{$rental->id}/checkin", []);
+
+    $response->assertUnprocessable()
+        ->assertJsonValidationErrors(['return_mileage', 'return_fuel_level']);
+});
