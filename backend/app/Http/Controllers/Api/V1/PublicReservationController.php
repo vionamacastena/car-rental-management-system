@@ -15,6 +15,7 @@ use App\Models\Reservation;
 use App\Models\Vehicle;
 use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
+use App\Events\ReservationCreated;
 use Illuminate\Http\Request;
 
 class PublicReservationController extends Controller
@@ -75,6 +76,7 @@ class PublicReservationController extends Controller
         }
 
         $reservation->load(['customer', 'vehicle', 'pickupLocation', 'returnLocation']);
+        ReservationCreated::dispatch($reservation);
 
         return (new ReservationResource($reservation))
             ->response()

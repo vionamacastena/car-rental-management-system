@@ -16,6 +16,7 @@ use App\Http\Controllers\Api\V1\VehicleController;
 use App\Http\Controllers\Api\V1\Admin\ContractController as AdminContractController;
 use App\Http\Controllers\Api\V1\Admin\DocumentController as AdminDocumentController;
 use App\Http\Controllers\Api\V1\Admin\MaintenanceController as AdminMaintenanceController;
+use App\Http\Controllers\Api\V1\Admin\NotificationController as AdminNotificationController;
 use Illuminate\Support\Facades\Route;
 
 Route::prefix('v1')->group(function () {
@@ -102,6 +103,13 @@ Route::get('maintenance/{maintenance}', [AdminMaintenanceController::class, 'sho
 Route::put('maintenance/{maintenance}', [AdminMaintenanceController::class, 'update']);
 Route::post('maintenance/{maintenance}/cancel', [AdminMaintenanceController::class, 'cancel']);
 Route::delete('maintenance/{maintenance}', [AdminMaintenanceController::class, 'destroy']);
+
+// Notifications
+Route::get('notifications', [AdminNotificationController::class, 'index']);
+Route::get('notifications/unread-count', [AdminNotificationController::class, 'unreadCount']);
+Route::post('notifications/{id}/read', [AdminNotificationController::class, 'markAsRead']);
+Route::post('notifications/mark-all-read', [AdminNotificationController::class, 'markAllAsRead']);
+Route::delete('notifications/{id}', [AdminNotificationController::class, 'destroy']);
 
     });
 });
