@@ -15,6 +15,7 @@ use App\Http\Controllers\Api\V1\PublicReservationController;
 use App\Http\Controllers\Api\V1\VehicleController;
 use App\Http\Controllers\Api\V1\Admin\ContractController as AdminContractController;
 use App\Http\Controllers\Api\V1\Admin\DocumentController as AdminDocumentController;
+use App\Http\Controllers\Api\V1\Admin\MaintenanceController as AdminMaintenanceController;
 use Illuminate\Support\Facades\Route;
 
 Route::prefix('v1')->group(function () {
@@ -93,6 +94,14 @@ Route::post('documents', [AdminDocumentController::class, 'store']);
 Route::get('documents/{document}', [AdminDocumentController::class, 'show']);
 Route::get('documents/{document}/download', [AdminDocumentController::class, 'download']);
 Route::delete('documents/{document}', [AdminDocumentController::class, 'destroy']);
+
+// Maintenance
+Route::get('maintenance', [AdminMaintenanceController::class, 'index']);
+Route::post('maintenance', [AdminMaintenanceController::class, 'store']);
+Route::get('maintenance/{maintenance}', [AdminMaintenanceController::class, 'show']);
+Route::put('maintenance/{maintenance}', [AdminMaintenanceController::class, 'update']);
+Route::post('maintenance/{maintenance}/cancel', [AdminMaintenanceController::class, 'cancel']);
+Route::delete('maintenance/{maintenance}', [AdminMaintenanceController::class, 'destroy']);
 
     });
 });
