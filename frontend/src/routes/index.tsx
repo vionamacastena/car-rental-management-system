@@ -11,6 +11,7 @@ import NotFoundPage from '@/pages/NotFoundPage'
 import LoginPage from '@/pages/admin/LoginPage'
 import DashboardPage from '@/pages/admin/DashboardPage'
 import LocationsPage from '@/pages/admin/LocationsPage'
+import VehiclesPage from '@/pages/admin/VehiclesPage'
 
 export const router = createBrowserRouter([
   {
@@ -36,6 +37,7 @@ export const router = createBrowserRouter([
           { index: true, element: <Navigate to="/admin/dashboard" replace /> },
           { path: 'dashboard', element: <DashboardPage /> },
           { path: 'locations', element: <LocationsPage /> },
+          { path: 'vehicles', element: <VehiclesPage /> },
           { path: '*', element: <NotFoundPage /> },
         ],
       },

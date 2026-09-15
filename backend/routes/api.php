@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Api\V1\Admin\LocationController as AdminLocationController;
+use App\Http\Controllers\Api\V1\Admin\VehicleController as AdminVehicleController;
 use App\Http\Controllers\Api\V1\Auth\AuthController;
 use App\Http\Controllers\Api\V1\AvailabilityController;
 use App\Http\Controllers\Api\V1\LocationController;
@@ -28,8 +29,10 @@ Route::prefix('v1')->group(function () {
         Route::post('/auth/logout', [AuthController::class, 'logout']);
     });
 
-    // Admin — kërkon auth
+    // Admin
     Route::middleware('auth:sanctum')->prefix('admin')->group(function () {
         Route::apiResource('locations', AdminLocationController::class);
+        Route::apiResource('vehicles', AdminVehicleController::class);
+        Route::patch('vehicles/{vehicle}/status', [AdminVehicleController::class, 'updateStatus']);
     });
 });

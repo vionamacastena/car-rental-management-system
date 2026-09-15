@@ -19,10 +19,10 @@ class VehicleController extends Controller
             ->with(['currentLocation', 'photos', 'primaryPhoto'])
             ->where('status', VehicleStatus::AVAILABLE->value);
 
-        if ($request->filled('brand')) {
-            $query->where('brand', 'ILIKE', '%' . $request->input('brand') . '%');
-        }
-
+       if ($request->filled('brand')) {
+    $brand = strtolower(trim((string) $request->input('brand')));
+    $query->whereRaw('LOWER(brand) LIKE ?', ["%{$brand}%"]);
+}
         if ($request->filled('fuel_type')) {
             $fuelTypes = collect((array) $request->input('fuel_type'))
                 ->filter(fn ($v) => in_array($v, array_column(FuelType::cases(), 'value'), true));
