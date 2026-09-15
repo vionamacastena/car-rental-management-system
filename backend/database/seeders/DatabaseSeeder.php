@@ -12,6 +12,7 @@ class DatabaseSeeder extends Seeder
             AdminSeeder::class,
             LocationSeeder::class,
             VehicleSeeder::class,
+            CustomerSeeder::class,
         ]);
     }
 }

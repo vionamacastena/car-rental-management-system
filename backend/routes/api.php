@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Api\V1\Admin\CustomerController as AdminCustomerController;
 use App\Http\Controllers\Api\V1\Admin\LocationController as AdminLocationController;
 use App\Http\Controllers\Api\V1\Admin\VehicleController as AdminVehicleController;
 use App\Http\Controllers\Api\V1\Admin\VehiclePhotoController as AdminVehiclePhotoController;
@@ -34,6 +35,8 @@ Route::prefix('v1')->group(function () {
     Route::middleware('auth:sanctum')->prefix('admin')->group(function () {
         Route::apiResource('locations', AdminLocationController::class);
         Route::apiResource('vehicles', AdminVehicleController::class);
+        Route::apiResource('customers', AdminCustomerController::class);
+
         Route::patch('vehicles/{vehicle}/status', [AdminVehicleController::class, 'updateStatus']);
 
         // Vehicle photos
