@@ -14,6 +14,7 @@ use App\Http\Controllers\Api\V1\LocationController;
 use App\Http\Controllers\Api\V1\PublicReservationController;
 use App\Http\Controllers\Api\V1\VehicleController;
 use App\Http\Controllers\Api\V1\Admin\ContractController as AdminContractController;
+use App\Http\Controllers\Api\V1\Admin\DocumentController as AdminDocumentController;
 use Illuminate\Support\Facades\Route;
 
 Route::prefix('v1')->group(function () {
@@ -85,5 +86,13 @@ Route::get('contracts/{contract}/pdf', [AdminContractController::class, 'pdf']);
 Route::post('contracts/{contract}/regenerate', [AdminContractController::class, 'regenerate']);
 Route::post('contracts/{contract}/sign-customer', [AdminContractController::class, 'signCustomer']);
 Route::post('contracts/{contract}/sign-admin', [AdminContractController::class, 'signAdmin']);
+
+// Documents
+Route::get('documents', [AdminDocumentController::class, 'index']);
+Route::post('documents', [AdminDocumentController::class, 'store']);
+Route::get('documents/{document}', [AdminDocumentController::class, 'show']);
+Route::get('documents/{document}/download', [AdminDocumentController::class, 'download']);
+Route::delete('documents/{document}', [AdminDocumentController::class, 'destroy']);
+
     });
 });
