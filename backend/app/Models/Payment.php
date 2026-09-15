@@ -13,6 +13,7 @@ use Illuminate\Database\Eloquent\Relations\MorphTo;
 class Payment extends Model
 {
     use HasFactory;
+    use \App\Domain\Audit\Auditable;
 
     protected $fillable = [
         'payment_code',

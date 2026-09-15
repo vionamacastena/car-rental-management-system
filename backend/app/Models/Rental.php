@@ -11,6 +11,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 class Rental extends Model
 {
     use HasFactory;
+    use \App\Domain\Audit\Auditable;
 
     protected $fillable = [
         'rental_code',

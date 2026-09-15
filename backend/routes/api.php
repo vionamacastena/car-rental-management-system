@@ -17,6 +17,7 @@ use App\Http\Controllers\Api\V1\Admin\ContractController as AdminContractControl
 use App\Http\Controllers\Api\V1\Admin\DocumentController as AdminDocumentController;
 use App\Http\Controllers\Api\V1\Admin\MaintenanceController as AdminMaintenanceController;
 use App\Http\Controllers\Api\V1\Admin\NotificationController as AdminNotificationController;
+use App\Http\Controllers\Api\V1\Admin\AuditLogController as AdminAuditLogController;
 use App\Http\Controllers\Api\V1\Admin\ReportController as AdminReportController;
 use Illuminate\Support\Facades\Route;
 
@@ -118,6 +119,11 @@ Route::get('reports/dashboard', [AdminReportController::class, 'dashboard']);
 Route::get('reports/revenue', [AdminReportController::class, 'revenue']);
 Route::get('reports/vehicles', [AdminReportController::class, 'vehicles']);
 Route::get('reports/locations', [AdminReportController::class, 'locations']);
+
+// Audit Log
+Route::get('audit-logs', [AdminAuditLogController::class, 'index']);
+Route::get('audit-logs/actions', [AdminAuditLogController::class, 'actions']);
+Route::get('audit-logs/{auditLog}', [AdminAuditLogController::class, 'show']);
 
     });
 });

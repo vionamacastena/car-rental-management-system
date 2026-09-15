@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Model;
 class Customer extends Model
 {
     use HasFactory;
+    use \App\Domain\Audit\Auditable;
 
     protected $fillable = [
         'first_name',

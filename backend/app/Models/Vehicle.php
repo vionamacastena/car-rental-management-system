@@ -13,6 +13,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 class Vehicle extends Model
 {
     use HasFactory;
+    use \App\Domain\Audit\Auditable;
 
     protected $fillable = [
         'brand',

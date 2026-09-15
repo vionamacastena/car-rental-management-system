@@ -11,6 +11,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 class MaintenanceRecord extends Model
 {
     use HasFactory;
+    use \App\Domain\Audit\Auditable;
 
     protected $fillable = [
         'maintenance_code',
