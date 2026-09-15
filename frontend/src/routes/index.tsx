@@ -24,6 +24,7 @@ import PaymentsPage from '@/pages/admin/PaymentsPage'
 import InvoicesPage from '@/pages/admin/InvoicesPage'
 import ContractsPage from '@/pages/admin/ContractsPage'
 import ContractDetailPage from '@/pages/admin/ContractDetailPage'
+import MaintenancePage from '@/pages/admin/MaintenancePage'
 
 export const router = createBrowserRouter([
   {
@@ -59,6 +60,7 @@ export const router = createBrowserRouter([
           { path: 'invoices', element: <InvoicesPage /> },
           { path: 'contracts', element: <ContractsPage /> },
           { path: 'contracts/:id', element: <ContractDetailPage /> },
+          { path: 'maintenance', element: <MaintenancePage /> },
           { path: '*', element: <NotFoundPage /> },
         ],
       },
