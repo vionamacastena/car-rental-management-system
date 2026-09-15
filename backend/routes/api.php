@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Api\V1\Admin\LocationController as AdminLocationController;
 use App\Http\Controllers\Api\V1\Auth\AuthController;
 use App\Http\Controllers\Api\V1\AvailabilityController;
 use App\Http\Controllers\Api\V1\LocationController;
@@ -21,11 +22,14 @@ Route::prefix('v1')->group(function () {
     Route::get('/availability', [AvailabilityController::class, 'index']);
 
     // Auth
-    Route::post('/auth/login', [AuthController::class, 'login'])
-        ->middleware('throttle:5,15'); // 5 tentativa / 15 min
-
+    Route::post('/auth/login', [AuthController::class, 'login'])->middleware('throttle:5,15');
     Route::middleware('auth:sanctum')->group(function () {
         Route::get('/auth/me', [AuthController::class, 'me']);
         Route::post('/auth/logout', [AuthController::class, 'logout']);
+    });
+
+    // Admin — kërkon auth
+    Route::middleware('auth:sanctum')->prefix('admin')->group(function () {
+        Route::apiResource('locations', AdminLocationController::class);
     });
 });

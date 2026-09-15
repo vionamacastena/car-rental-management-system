@@ -10,9 +10,9 @@ import NotFoundPage from '@/pages/NotFoundPage'
 
 import LoginPage from '@/pages/admin/LoginPage'
 import DashboardPage from '@/pages/admin/DashboardPage'
+import LocationsPage from '@/pages/admin/LocationsPage'
 
 export const router = createBrowserRouter([
-  // Public
   {
     path: '/',
     element: <PublicLayout />,
@@ -22,14 +22,10 @@ export const router = createBrowserRouter([
       { path: 'vehicles/:id', element: <VehicleDetailsPage /> },
     ],
   },
-
-  // Admin login (public)
   {
     path: '/admin/login',
     element: <LoginPage />,
   },
-
-  // Admin protected
   {
     path: '/admin',
     element: <ProtectedRoute />,
@@ -39,11 +35,11 @@ export const router = createBrowserRouter([
         children: [
           { index: true, element: <Navigate to="/admin/dashboard" replace /> },
           { path: 'dashboard', element: <DashboardPage /> },
+          { path: 'locations', element: <LocationsPage /> },
           { path: '*', element: <NotFoundPage /> },
         ],
       },
     ],
   },
-
   { path: '*', element: <NotFoundPage /> },
 ])
