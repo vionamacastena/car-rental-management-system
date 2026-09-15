@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Api\V1\Admin\CustomerController as AdminCustomerController;
+use App\Http\Controllers\Api\V1\Admin\InvoiceController as AdminInvoiceController;
 use App\Http\Controllers\Api\V1\Admin\LocationController as AdminLocationController;
 use App\Http\Controllers\Api\V1\Admin\PaymentController as AdminPaymentController;
 use App\Http\Controllers\Api\V1\Admin\RentalController as AdminRentalController;
@@ -28,11 +29,9 @@ Route::prefix('v1')->group(function () {
     Route::get('/vehicles/{vehicle}', [VehicleController::class, 'show']);
     Route::get('/availability', [AvailabilityController::class, 'index']);
 
-    // Public booking
     Route::post('/reservations', [PublicReservationController::class, 'store'])->middleware('throttle:10,1');
     Route::post('/reservations/lookup', [PublicReservationController::class, 'lookup'])->middleware('throttle:20,1');
 
-    // Auth
     Route::post('/auth/login', [AuthController::class, 'login'])->middleware('throttle:5,15');
     Route::middleware('auth:sanctum')->group(function () {
         Route::get('/auth/me', [AuthController::class, 'me']);
@@ -56,7 +55,6 @@ Route::prefix('v1')->group(function () {
         Route::patch('reservations/{reservation}/status', [AdminReservationController::class, 'updateStatus']);
         Route::delete('reservations/{reservation}', [AdminReservationController::class, 'destroy']);
 
-        // Rentals
         Route::get('rentals', [AdminRentalController::class, 'index']);
         Route::post('rentals', [AdminRentalController::class, 'store']);
         Route::get('rentals/{rental}', [AdminRentalController::class, 'show']);
@@ -64,11 +62,18 @@ Route::prefix('v1')->group(function () {
         Route::post('rentals/{rental}/checkin', [AdminRentalController::class, 'checkin']);
         Route::post('rentals/{rental}/cancel', [AdminRentalController::class, 'cancel']);
 
-        // Payments
         Route::get('payments', [AdminPaymentController::class, 'index']);
         Route::post('payments', [AdminPaymentController::class, 'store']);
         Route::get('payments/summary', [AdminPaymentController::class, 'summary']);
         Route::get('payments/{payment}', [AdminPaymentController::class, 'show']);
         Route::post('payments/{payment}/refund', [AdminPaymentController::class, 'refund']);
+
+        // Invoices
+        Route::get('invoices', [AdminInvoiceController::class, 'index']);
+        Route::post('invoices', [AdminInvoiceController::class, 'store']);
+        Route::get('invoices/{invoice}', [AdminInvoiceController::class, 'show']);
+        Route::get('invoices/{invoice}/pdf', [AdminInvoiceController::class, 'pdf']);
+        Route::post('invoices/{invoice}/regenerate', [AdminInvoiceController::class, 'regenerate']);
+        Route::post('invoices/{invoice}/mark-paid', [AdminInvoiceController::class, 'markPaid']);
     });
 });
