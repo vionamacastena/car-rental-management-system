@@ -17,6 +17,7 @@ import LocationsPage from '@/pages/admin/LocationsPage'
 import VehiclesPage from '@/pages/admin/VehiclesPage'
 import CustomersPage from '@/pages/admin/CustomersPage'
 import ReservationsPage from '@/pages/admin/ReservationsPage'
+import RentalsPage from '@/pages/admin/RentalsPage'
 
 export const router = createBrowserRouter([
   {
@@ -48,6 +49,7 @@ export const router = createBrowserRouter([
           { path: 'vehicles', element: <VehiclesPage /> },
           { path: 'customers', element: <CustomersPage /> },
           { path: 'reservations', element: <ReservationsPage /> },
+          { path: 'rentals', element: <RentalsPage /> },
           { path: '*', element: <NotFoundPage /> },
         ],
       },
