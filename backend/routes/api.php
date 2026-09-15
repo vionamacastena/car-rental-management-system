@@ -2,11 +2,13 @@
 
 use App\Http\Controllers\Api\V1\Admin\CustomerController as AdminCustomerController;
 use App\Http\Controllers\Api\V1\Admin\LocationController as AdminLocationController;
+use App\Http\Controllers\Api\V1\Admin\ReservationController as AdminReservationController;
 use App\Http\Controllers\Api\V1\Admin\VehicleController as AdminVehicleController;
 use App\Http\Controllers\Api\V1\Admin\VehiclePhotoController as AdminVehiclePhotoController;
 use App\Http\Controllers\Api\V1\Auth\AuthController;
 use App\Http\Controllers\Api\V1\AvailabilityController;
 use App\Http\Controllers\Api\V1\LocationController;
+use App\Http\Controllers\Api\V1\PublicReservationController;
 use App\Http\Controllers\Api\V1\VehicleController;
 use Illuminate\Support\Facades\Route;
 
@@ -17,12 +19,19 @@ Route::prefix('v1')->group(function () {
         'time' => now()->toIso8601String(),
     ]));
 
-    // Public
+    // Public — browse
     Route::get('/locations', [LocationController::class, 'index']);
     Route::get('/locations/{location}', [LocationController::class, 'show']);
     Route::get('/vehicles', [VehicleController::class, 'index']);
     Route::get('/vehicles/{vehicle}', [VehicleController::class, 'show']);
     Route::get('/availability', [AvailabilityController::class, 'index']);
+
+    // Public — booking (rate-limited)
+    Route::post('/reservations', [PublicReservationController::class, 'store'])
+        ->middleware('throttle:10,1'); // 10 requests/min/IP
+
+    Route::post('/reservations/lookup', [PublicReservationController::class, 'lookup'])
+        ->middleware('throttle:20,1');
 
     // Auth
     Route::post('/auth/login', [AuthController::class, 'login'])->middleware('throttle:5,15');
@@ -39,10 +48,14 @@ Route::prefix('v1')->group(function () {
 
         Route::patch('vehicles/{vehicle}/status', [AdminVehicleController::class, 'updateStatus']);
 
-        // Vehicle photos
         Route::post('vehicles/{vehicle}/photos', [AdminVehiclePhotoController::class, 'store']);
         Route::patch('vehicles/{vehicle}/photos/{photo}/primary', [AdminVehiclePhotoController::class, 'setPrimary']);
         Route::patch('vehicles/{vehicle}/photos/reorder', [AdminVehiclePhotoController::class, 'reorder']);
         Route::delete('vehicles/{vehicle}/photos/{photo}', [AdminVehiclePhotoController::class, 'destroy']);
+
+        Route::apiResource('reservations', AdminReservationController::class)->except(['destroy']);
+        Route::post('reservations/{reservation}/cancel', [AdminReservationController::class, 'cancel']);
+        Route::patch('reservations/{reservation}/status', [AdminReservationController::class, 'updateStatus']);
+        Route::delete('reservations/{reservation}', [AdminReservationController::class, 'destroy']);
     });
 });
