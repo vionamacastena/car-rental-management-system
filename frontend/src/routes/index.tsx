@@ -15,6 +15,8 @@ import LoginPage from '@/pages/admin/LoginPage'
 import DashboardPage from '@/pages/admin/DashboardPage'
 import LocationsPage from '@/pages/admin/LocationsPage'
 import VehiclesPage from '@/pages/admin/VehiclesPage'
+import CustomersPage from '@/pages/admin/CustomersPage'
+import ReservationsPage from '@/pages/admin/ReservationsPage'
 
 export const router = createBrowserRouter([
   {
@@ -44,6 +46,8 @@ export const router = createBrowserRouter([
           { path: 'dashboard', element: <DashboardPage /> },
           { path: 'locations', element: <LocationsPage /> },
           { path: 'vehicles', element: <VehiclesPage /> },
+          { path: 'customers', element: <CustomersPage /> },
+          { path: 'reservations', element: <ReservationsPage /> },
           { path: '*', element: <NotFoundPage /> },
         ],
       },
