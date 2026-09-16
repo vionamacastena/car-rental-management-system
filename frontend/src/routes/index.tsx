@@ -27,6 +27,7 @@ import ContractDetailPage from '@/pages/admin/ContractDetailPage'
 import MaintenancePage from '@/pages/admin/MaintenancePage'
 import ReportsPage from '@/pages/admin/ReportsPage'
 import AuditLogPage from '@/pages/admin/AuditLogPage'
+import SettingsPage from '@/pages/admin/SettingsPage'
 
 export const router = createBrowserRouter([
   {
@@ -65,6 +66,7 @@ export const router = createBrowserRouter([
           { path: 'maintenance', element: <MaintenancePage /> },
           { path: 'reports', element: <ReportsPage /> },
           { path: 'audit-log', element: <AuditLogPage /> },
+          { path: 'settings', element: <SettingsPage /> },
           { path: '*', element: <NotFoundPage /> },
         ],
       },

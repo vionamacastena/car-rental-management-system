@@ -18,7 +18,10 @@ use App\Http\Controllers\Api\V1\Auth\AuthController;
 use App\Http\Controllers\Api\V1\AvailabilityController;
 use App\Http\Controllers\Api\V1\LocationController;
 use App\Http\Controllers\Api\V1\PublicReservationController;
+use App\Http\Controllers\Api\V1\Admin\SettingController as AdminSettingController;
+use App\Http\Controllers\Api\V1\PublicSettingController;
 use App\Http\Controllers\Api\V1\VehicleController;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Route;
 
 Route::prefix('v1')->group(function () {
@@ -35,6 +38,7 @@ Route::prefix('v1')->group(function () {
         Route::get('/vehicles', [VehicleController::class, 'index']);
         Route::get('/vehicles/{vehicle}', [VehicleController::class, 'show']);
         Route::get('/availability', [AvailabilityController::class, 'index']);
+        Route::get('/settings/public', [PublicSettingController::class, 'index']);
     });
 
     // Public — booking
@@ -126,5 +130,49 @@ Route::prefix('v1')->group(function () {
         Route::get('audit-logs', [AdminAuditLogController::class, 'index']);
         Route::get('audit-logs/actions', [AdminAuditLogController::class, 'actions']);
         Route::get('audit-logs/{auditLog}', [AdminAuditLogController::class, 'show']);
+
+        Route::get('settings', [AdminSettingController::class, 'index']);
+Route::post('settings/bulk-update', [AdminSettingController::class, 'bulkUpdate']);
+Route::get('settings/{setting}', [AdminSettingController::class, 'show']);
+
+Route::get('/health', function () {
+    $checks = [
+        'app' => 'ok',
+        'database' => 'ok',
+        'cache' => 'ok',
+        'storage' => 'ok',
+    ];
+
+    try {
+        DB::connection()->getPdo();
+    } catch (\Throwable $e) {
+        $checks['database'] = 'fail';
+    }
+
+    try {
+        Cache::put('health-check', 'ok', 5);
+        $checks['cache'] = Cache::get('health-check') === 'ok' ? 'ok' : 'fail';
+    } catch (\Throwable $e) {
+        $checks['cache'] = 'fail';
+    }
+
+    try {
+        Storage::disk('local')->put('health-check.txt', 'ok');
+        $checks['storage'] = Storage::disk('local')->exists('health-check.txt') ? 'ok' : 'fail';
+        Storage::disk('local')->delete('health-check.txt');
+    } catch (\Throwable $e) {
+        $checks['storage'] = 'fail';
+    }
+
+    $allOk = ! in_array('fail', $checks, true);
+
+    return response()->json([
+        'status' => $allOk ? 'ok' : 'degraded',
+        'service' => 'crms-api',
+        'version' => config('app.version', '1.0.0'),
+        'checks' => $checks,
+        'time' => now()->toIso8601String(),
+    ], $allOk ? 200 : 503);
+});
     });
 });
