@@ -223,8 +223,7 @@ export default function ReportsPage() {
                     <YAxis tick={{ fontSize: 11, fill: '#8A8A8A' }} />
                     <Tooltip
                       contentStyle={{ borderRadius: 8, border: '1px solid #E5E1D8', fontSize: 12 }}
-                      formatter={(value: number) => [`${value.toFixed(2)}€`, 'Të hyra']}
-                    />
+formatter={(value) => [`${Number(value).toFixed(2)}€`, 'Të hyra'] as [string, string]}                    />
                     <Line
                       type="monotone"
                       dataKey="revenue"
@@ -265,8 +264,7 @@ export default function ReportsPage() {
                     </Pie>
                     <Tooltip
                       contentStyle={{ borderRadius: 8, border: '1px solid #E5E1D8', fontSize: 12 }}
-                      formatter={(value: number) => `${value.toFixed(2)}€`}
-                    />
+formatter={(value) => `${Number(value).toFixed(2)}€`}                    />
                     <Legend wrapperStyle={{ fontSize: 12 }} />
                   </PieChart>
                 </ResponsiveContainer>

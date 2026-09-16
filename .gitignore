@@ -18,3 +18,11 @@ backend/.env
 backend/.phpunit.result.cache
 
 docker/data/
+.vercel
+.env*
+
+# Vercel
+.neon
+*.tsbuildinfo
+backend/package.json.bak
+backend/package-lock.json.bak
