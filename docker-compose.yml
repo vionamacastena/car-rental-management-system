@@ -1,21 +1,38 @@
 services:
-  postgres:
-    image: postgres:16-alpine
-    container_name: crms-postgres
+  mysql:
+    image: mysql:8.0
+    container_name: crms-mysql
     restart: unless-stopped
     environment:
-      POSTGRES_DB: crms
-      POSTGRES_USER: crms
-      POSTGRES_PASSWORD: secret
+      MYSQL_DATABASE: crms
+      MYSQL_USER: crms
+      MYSQL_PASSWORD: secret
+      MYSQL_ROOT_PASSWORD: root
     ports:
-      - "5433:5432"
+      - "3306:3306"
     volumes:
-      - pgdata:/var/lib/postgresql/data
+      - mysqldata:/var/lib/mysql
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U crms -d crms"]
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-proot"]
       interval: 5s
       timeout: 5s
-      retries: 5
+      retries: 20
+
+  phpmyadmin:
+    image: phpmyadmin:latest
+    container_name: crms-phpmyadmin
+    restart: unless-stopped
+    environment:
+      PMA_HOST: mysql
+      PMA_PORT: 3306
+      PMA_USER: root
+      PMA_PASSWORD: root
+      UPLOAD_LIMIT: 100M
+    ports:
+      - "8080:80"
+    depends_on:
+      mysql:
+        condition: service_healthy
 
   redis:
     image: redis:7-alpine
@@ -27,5 +44,5 @@ services:
       - redisdata:/data
 
 volumes:
-  pgdata:
+  mysqldata:
   redisdata:

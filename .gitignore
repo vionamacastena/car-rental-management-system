@@ -26,3 +26,26 @@ docker/data/
 *.tsbuildinfo
 backend/package.json.bak
 backend/package-lock.json.bak
+
+# Environment
+.env
+.env.*
+!.env.example
+
+# Laravel cache
+backend/bootstrap/cache/*.php
+backend/storage/framework/cache/data/*
+backend/storage/framework/sessions/*
+backend/storage/framework/views/*
+backend/storage/logs/*.log
+backend/database/database.sqlite
+
+# Vercel
+.vercel
+.neon
+*.tsbuildinfo
+backend/package.json.bak
+backend/package-lock.json.bak
+
+# Docker
+docker/data/

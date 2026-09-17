@@ -174,5 +174,16 @@ Route::get('/health', function () {
         'time' => now()->toIso8601String(),
     ], $allOk ? 200 : 503);
 });
+
+
+Route::get('/debug-db', function () {
+    return response()->json([
+        'default_connection' => config('database.default'),
+        'driver' => config('database.connections.' . config('database.default') . '.driver'),
+        'host' => config('database.connections.' . config('database.default') . '.host'),
+        'port' => config('database.connections.' . config('database.default') . '.port'),
+        'database' => config('database.connections.' . config('database.default') . '.database'),
+    ]);
+});
     });
 });
